@@ -48,3 +48,22 @@ legend('topright',legend = c('Observed data', 'Complete data'),
 ##-----------------------------------------------------------------------------
 ## Part 3b
 ## We perform imputation by stochastic regression
+## First we fit a linear regression model and then we add some random noise
+
+## Y2 with missing values
+Y2_mis <- Y2
+Y2_mis[cond] <- NA
+
+## Data set
+data <- data.frame(Y1,Y2_mis)
+
+## Linear Regression
+fit <- lm(Y2_mis~Y1, data = data)
+
+## Creating the predictions and adding noise
+preds <- predict(fit, newdata = data) + rnorm(nrow(data), 0, sigma(fit))
+
+## Creating the completed Y2 by adding the predictions where we had NAs
+Y2_comp <- ifelse(is.na(data$Y2_mis), preds, Y2_mis)
+
+
