@@ -1,0 +1,721 @@
+---
+title: |
+  <center> University of Edinburgh, School of Mathematics </center>
+  <center> Incomplete Data Analysis (MATH11185) </center>
+  <center> Assignment 1 </center>
+author: "Evangelos Antypas s2449453"
+date: "16/02/2023"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+fontsize: 9pt    
+---
+
+**Question 1**
+
+(a) We are working under the assumption that the missing data mechanism for the 
+variable ALQ is Missing Completely at Random(MCAR), which means that the 
+probability that a value is missing is unrelated to either the specific values
+that in principle, should have been obtained or to the observed (or unobserved) 
+values, i.e. the missingness is a product of chance. In the context of our 
+problem this means that the probability of missingness is the same, regardless
+of if ALQ is YES or NO, so the probability of ALQ being missing for those with 
+ALQ=No is 0.3 (ii).  
+
+(b) We are working under the assumption that the missing data mechanism for the 
+variable ALQ is Missing at Random, which means that the probability that a value 
+is missing depends (only) on observed/available information but it is further 
+unrelated to the specific missing values that, in principle, should have been 
+obtained. In the context of our problem, the MAR assumption implies that 
+probability that an ALQ value is missing varies with Gender but does not depend 
+on the YES/NO values themselves. Equivalently, the probability of ALQ being 
+missing is independent of the Yes/No value of ALQ after adjusting for gender, so 
+we choose (ii).  
+
+(c) From the information we are given, we can only conclude that given the 
+gender the probability of ALQ being  missing is independent of the Yes/No value
+(MAR assumption) and that given that Gender =  man, the probability of 
+missingness is 0.1 (regardless of YES/NO), from these it is not possible to 
+conclude that the same should also be true for Gender =  woman, so we rule out 
+option (i). Furthermore, it not the case that the two events in question are 
+complementary (i.e the probabilities sum to 1), so we rule out option (ii), so 
+finally we choose option (iii).
+
+**Question 2**
+
+We have a dataset that consists of 100 subjects and 10 variables, each 
+containing 10% missing values. We are interested in finding what is the largest 
+and smallest subsample under a complete case analysis. Formally, we have 
+a set of subjects $S = \{S_{1},...,S_{100}\}$ and essentially we are looking for 
+the largest and smallest subset of $S$, under a complete case analysis. It is 
+easy  to see that the size of the candidate subsets must (apriori) lie in the 
+range  0,1,2,...,100. We proceed as follows, for the smallest case we 
+demonstrate an example of a dataset, where no subject can be included in a 
+complete case analysis, this implies that the smallest size is indeed 0. Indeed, 
+from the instructions provided we know that each variables has exactly 10 values 
+missing. Assume now that we represent our dataset with a $100\times10$ matrix M.
+Consider the case where the first variable (column 1) is missing the first 10 
+elements, in that case the first rows 10 (i.e $S_{1}...S_{10}$) contain missing 
+elements, so $S_{1}...S_{10}$ cannot be included in a complete case analysis, 
+the second variable (column 2) is missing the next 10 elements (i.e. 11...20),
+so $S_{11}...S_{20}$ cannot be included in a complete case analysis, ... ,
+the tenth variable is missing the final ten elements and so $S_{91}...S_{100}$ 
+cannot be included in a complete case analysis, which eventually implies that no 
+subject can be included, i.e. *the smallest size is 0*.
+
+For the largest case, we postulate that the *largest size is 90*. We begin by 
+demonstrating that there exists at least one dataset such that 90 subjects can
+be included in a complete case analysis. Consider the case where the first ten
+rows of M contain all the missing data, i.e. subjects $S_{1}...S_{10}$ did not 
+provide any data at all. In this case, every other row contains no missing data 
+and so can be included in a complete case analysis. It is worth noticing that, 
+we could have chosen which rows are  missing in any way and we would again 
+obtain  that exactly 90 subjects can be included in the analysis. Equivalently, 
+we are saying that all $100\choose90$ subsets of size 90 produce the same result.
+Now, we wish to prove that this is the best we can do. Assume for the sake of 
+contradiction that there exists a subset $L\subset S$ such that every subject in
+$L$ can be included in a complete case analysis and $|L|>90$. That would imply
+that every variable $V_{i},i=1...10$ has less than 10% missing values, which is 
+a contradiction and we are done $\square$. 
+
+\vspace{5pt}
+
+
+**Question 3**
+
+We have a two variable problem $(Y_{1},Y_{2})$ with each variable defined as 
+follows:
+
+\begin{center}
+$Y_{1} = 1 + Z_{1}$ 
+
+$Y_{2} = 5 + 2Z_{1} + Z_{2},$ 
+
+\end{center}
+
+
+where $Y_{1}$ is fully observed, but $Y_{2}$ has some missing values. Further 
+consider that $Y_2$ is missing if $a(Y_{1}-1)+b(Y_{2}-5)+Z_{3}< 0$, where 
+$Z_1,Z_2,Z_3$ are i.i.d. standard normal variables. 
+
+(a) We simulate a dataset of size 500 on $(Y_1,Y_2)$ and we subject $Y_{2}$ to 
+missingness based on the condition mentioned above for $a=2, \quad b=0$. In this 
+case,the missing data mechanism does not depend on $Y_{2}$ because $b=0$, 
+however it does depend on $Y_{1}$ which is fully observed, which implies that 
+the missing data mechanism is *MAR*.
+
+```{r}
+## Question 3
+##-----------------------------------------------------------------------------
+## Part 3a
+
+## Seed for reproducibility
+set.seed(1)
+
+## Sample size
+n <- 500
+
+## We have that Z1,Z2,Z3 are i.i.d standard normal variables
+## Simulation
+Z1 <- rnorm(n)
+Z2 <- rnorm(n)
+Z3 <- rnorm(n)
+
+
+## We obtain Y1,Y2
+## Complete data set 
+Y1 <- 1 + Z1
+Y2 <- 5 + 2*Z1 + Z2
+
+## We will now impose missingness on Y2 based on the condition ::
+## a(Y1-1) + b(Y2-5) + Z3 < 0, a,b are given parameters
+a <- 2
+b <- 0 
+
+## Defining the condition
+cond <- a*(Y1-1) + b*(Y2-5) + Z3
+
+## Boolean vector
+cond <- (cond<0)
+
+## Obtaining the observed Y2, i.e. after the missing values have been imposed
+Y2_obs <- Y2[cond==FALSE]
+
+```
+
+We plot the marginal distribution of Y2 for the complete (as originally 
+simulated) and observed (after imposing missingness) data.
+
+```{r,out.width="70%",fig.align = 'center'}
+## Visualization of the marginal of Y2 for complete and observed data
+plot(density(Y2), lwd = 2, col = 'blue', xlab = 'Data values',
+main = 'Density of Y2: Observed vs Complete Data', ylim = c(0,0.3))
+lines(density(Y2_obs), lwd = 2, col = "red")
+
+legend('topright',legend = c('Complete data', 'Observed data'), 
+       col = c('blue','red'), lty = c(1,1), lwd = c(2,2),bty ="n")
+
+
+```
+
+We have stated that the missing data mechanism is MAR, so the fact that the two 
+densities are quite different matches what we were expecting to see.  
+
+(b) For the observed simulated dataset in part (a), we shall now impute the 
+missing values using stochastic regression imputation. The main idea here is to 
+fit a linear regression model with to the fully observed data we have and use 
+that to make predictions for the missing values. However, if we stop there all 
+the imputed values will lie on a straight line, for this reason we add some 
+random noise, to better simulate what real data would look like. Before 
+advancing any further, it is important to note that in using SRI, we have 
+implicitly assumed that a linear  model is adequate to describe our problem. For
+this reason, before actually  doing any imputation we should check if the 
+assumptions of the linear model are satisfied.We will fit a simple linear 
+regression model of the form
+\[
+\text{$Y_2$}_i=\beta_0+\beta_1\text{$Y_1$}_i+\varepsilon_{i},\qquad
+\varepsilon_{i}\overset{\text{iid}}\sim\text{N}(0,\sigma^2).
+\]
+```{r}
+## Y2 with missing values
+Y2_mis <- Y2
+Y2_mis[cond] <- NA
+
+## Data set
+data <- data.frame(Y1,Y2_mis)
+
+## Linear Regression
+fit <- lm(Y2_mis~Y1, data = data)
+
+```
+
+To check the assumption of linearity and of constant variance we can use a plot
+of the fitted values against the residuals.
+
+```{r,out.width="70%",fig.align = 'center'}
+plot(fit$fitted.values, residuals(fit), xlab = "Fitted values",
+     ylab = "Residuals")
+
+```
+There is no obvious pattern, so there is no reason to suspect of a nonlinear 
+relationship or no constant variance. Although it is not of fundamental 
+importance here in regression imputation, we can also check the assumption of 
+normality of error terms using a QQ-plot.
+
+```{r,out.width="70%",fig.align = 'center'}
+qqnorm(rstandard(fit), xlim = c(-3, 3), ylim = c(-3, 3))
+qqline(rstandard(fit), col = 2)
+
+```
+
+Finally, for stochastic regression imputation, we will add noise to the 
+predictions obtained using the regression imputation method. Since this involves 
+generating random numbers (from a normal distribution).
+
+```{r}
+## Creating the predictions and adding noise
+preds <- predict(fit, newdata = data) + rnorm(nrow(data), 0, sigma(fit))
+
+## Creating the completed Y2 by adding the predictions where we had NAs
+Y2_comp <- ifelse(is.na(data$Y2_mis), preds, Y2_mis)
+
+```
+We plot the marginal distribution of Y2 for the complete (as originally 
+simulated) and observed (after imposing missingness) data.
+
+```{r,out.width="70%",fig.align = 'center'}
+## Visualization of the marginal of Y2 for complete and observed data
+plot(density(Y2), lwd = 2, col = 'blue', xlab = 'Data values',
+main = 'Density of Y2: Complete vs Completed Data', ylim = c(0,0.3))
+lines(density(Y2_comp), lwd = 2, col = "red")
+
+legend('topright',legend = c('Complete data', 'Completed data'), 
+       col = c('blue','red'), lty = c(1,1), lwd = c(2,2),bty ="n")
+
+
+```
+
+We observe that SRI, in the MAR case, seems to produce satisfactory results,
+the distribution of the completed data is quite close to that of the originally
+simulated data.
+
+(c) We now the replicate the procedure we did in part (a) but
+for $a=0, \quad b=2$. Note that in this case the missing data mechanism will be 
+MNAR, because the probability of missingness depends on $Y_2$ which is not fully
+observed.
+
+```{r}
+## We will now impose missingness on Y2 based on the condition ::
+## a(Y1-1) + b(Y2-5) + Z3 < 0, a,b are given parameters
+a <- 0
+b <- 2
+
+## Defining the condition
+cond <- a*(Y1-1) + b*(Y2-5) + Z3
+
+## Boolean vector
+cond <- (cond<0)
+
+## Obtaining the observed Y2, i.e. after the missing values have been imposed
+Y2_obs_c <- Y2[cond==FALSE]
+
+```
+
+We plot the marginal distribution of Y2 for the complete (as originally 
+simulated) and observed (after imposing missingness) data.
+
+```{r,out.width="70%",fig.align = 'center'}
+## Visualization of the marginal of Y2 for complete and observed data
+plot(density(Y2), lwd = 2, col = 'blue', xlab = 'Data values',
+main = 'Density of Y2: Observed vs Complete Data', ylim = c(0,0.3))
+lines(density(Y2_obs_c), lwd = 2, col = "red")
+
+legend('topright',legend = c('Complete data', 'Observed data'), 
+       col = c('blue','red'), lty = c(1,1), lwd = c(2,2),bty ="n")
+
+```
+We observe that in the MNAR case the difference between the two densities is 
+even more extreme.
+
+(d) We shall now perform SRI, just as we did in part (b). It is interesting to 
+see how SRI performs in MNAR case compared to MAR case.
+```{r}
+## Y2 with missing values
+Y2_mis_c <- Y2
+Y2_mis_c[cond] <- NA
+
+## Data set
+data <- data.frame(Y1,Y2_mis_c)
+
+## Linear Regression
+fit <- lm(Y2_mis_c~Y1, data = data)
+
+```
+
+
+To check the assumption of linearity and of constant variance we can use a plot
+of the fitted values against the residuals.
+
+```{r,out.width="70%",fig.align = 'center'}
+plot(fit$fitted.values, residuals(fit), xlab = "Fitted values",
+     ylab = "Residuals")
+
+```
+
+There is no obvious pattern, so there is no reason to suspect of a nonlinear 
+relationship or no constant variance. Although it is not of fundamental 
+importance here in regression imputation, we can also check the assumption of 
+normality of error terms using a QQ-plot.
+
+```{r,out.width="70%",fig.align = 'center'}
+qqnorm(rstandard(fit), xlim = c(-3, 3), ylim = c(-3, 3))
+qqline(rstandard(fit), col = 2)
+
+```
+
+Finally, we perform the  stochastic regression imputation.
+```{r}
+## Creating the predictions and adding noise
+preds <- predict(fit, newdata = data) + rnorm(nrow(data), 0, sigma(fit))
+
+## Creating the completed Y2 by adding the predictions where we had NAs
+Y2_comp_c <- ifelse(is.na(data$Y2_mis_c), preds, Y2_mis_c)
+
+```
+We plot the marginal distribution of Y2 for the complete (as originally 
+simulated) and observed (after imposing missingness) data.
+
+```{r,out.width="70%",fig.align = 'center'}
+## Visualization of the marginal of Y2 for complete and observed data
+plot(density(Y2), lwd = 2, col = 'blue', xlab = 'Data values',
+main = 'Density of Y2: Complete vs Completed Data', ylim = c(0,0.3))
+lines(density(Y2_comp_c), lwd = 2, col = "red")
+
+legend('topright',legend = c('Complete data', 'Completed data'), 
+       col = c('blue','red'), lty = c(1,1), lwd = c(2,2),bty ="n")
+
+```
+We now observe that even after the imputation the two densities are still quite 
+different, which means that our results are not satisfactory. MNAR data are hard
+to work with.
+
+**Question 4**
+
+For this task, we work with the dataset databp.Rdata, a partial missing value 
+versionof the data presented by Robertson and Armitage (1959), relate to a
+particular hypotensive drug and give the time in minutes before the patient’s 
+systolic blood pressure returned to 1000mm of mercury (the recovery time), the 
+logarithm (base 10) of the dose of drug in milligrams, and the average systolic 
+blood pressure achieved while the drug was being administered.
+
+(a) We shall carry out a complete case analysis to find the mean value of the 
+recovery time (and associated standard error) and the (Pearson) correlations 
+between the recovery time and the dose and between the recovery time and blood 
+pressure.
+
+```{r}
+## Loading data from local path, to run on a different machine change this to 
+## wherever the data file is saved 
+
+load("C:/Users/antyp/Downloads/databp(3).Rdata")
+
+```
+
+```{r}
+## We exclude the missing data 
+recovtime <- databp$recovtime
+ind <- which(is.na(recovtime) == FALSE) 
+dose <- databp$logdose
+bloodp <- databp$bloodp
+
+## Mean in complete analysis case 
+mccoverall <- mean(recovtime, na.rm = TRUE)
+
+## Standard error in complete analysis case 
+seccoverall <- sd(recovtime, na.rm = TRUE)/sqrt(length(ind))
+
+
+```
+
+
+```{r}
+cat("The mean recovery time under complete case analysis is", mccoverall,".")
+
+
+```
+
+
+```{r}
+cat("The standard error on the mean recovery time under complete case analysis 
+      is", seccoverall,".")
+
+```
+
+
+```{r}
+## Correlation between recovery time and the dose
+cor_recdos <- cor(recovtime[ind],dose[ind])
+
+cat("The Pearson correlation between the recovery time and the dose
+under complete case analysis 
+      is", cor_recdos,".")
+```
+
+```{r,out.width="70%",fig.align = 'center'}
+## We also do a scatterplot to obtain a better view of the correlation
+plot(recovtime[ind],dose[ind],xlab = 'Recovery time', ylab = 'Dose', 
+     main = 'Recovery time vs Dose')
+
+```
+
+```{r}
+## Correlation between recovery time and blood pressure
+cor_recbp <- cor(recovtime[ind],bloodp[ind])
+
+cat('The Pearson correlation between the recovery time and the dose
+under complete case analysis 
+      is', cor_recbp,'.')
+```
+
+```{r,out.width="70%",fig.align = 'center'}
+## We also do a scatterplot to obtain a better view of the correlation
+plot(recovtime[ind],bloodp[ind],xlab = 'Recovery time', ylab = 'Blood pressure', 
+     main = 'Recovery time vs Blood pressure')
+
+```
+
+(b) We shall perform mean imputation first and then replicate what we did in 
+part (a). In principle, the mean should stay the same and the standard error
+should drop, because in this case observations are more centered around the 
+mean.
+
+```{r}
+## Creating the completed recovery time by replacing NAs with the mean
+recovtime_comp <- ifelse(is.na(recovtime), mccoverall, recovtime)
+
+```
+
+```{r}
+
+## Mean in complete analysis case 
+mccoverall_b <- mean(recovtime_comp, na.rm = TRUE)
+
+## Standard error in complete analysis case 
+seccoverall_b <- sd(recovtime_comp, na.rm = TRUE)/sqrt(length(recovtime_comp))
+
+```
+
+
+
+```{r}
+
+cat("The mean for the completed recovery time is", mccoverall_b,".")
+
+```
+
+
+```{r}
+cat("The standard error on the mean for the completed recovery time
+      is", seccoverall_b,".")
+
+```
+
+```{r}
+## Correlation between recovery time and the dose
+cor_recdos_b <- cor(recovtime_comp,dose)
+
+cat("The Pearson correlation between the completed recovery time and the dose
+      is", cor_recdos_b,".")
+```
+
+```{r}
+## Correlation between recovery time and the dose
+cor_recdbp_b <- cor(recovtime_comp,bloodp)
+
+cat("The Pearson correlation between the completed recovery time and the blood
+      pressure is", cor_recdbp_b,".")
+
+```
+
+
+As we expected, the mean has stayed the same and the standard error has dropped.
+
+
+
+(c) We shall now perform mean regression imputation and then replicate the 
+calculations of part (a). This means that we will fit a model of the form
+\[
+\text{$recovtime$}_i=\beta_0+\beta_1\text{$dose$}_i+\beta_2\text{$bloodp$}_i+ 
+\varepsilon_{i},\qquad
+\varepsilon_{i}\overset{\text{iid}}\sim\text{N}(0,\sigma^2).
+\]
+
+to the observed data we have and then use the predictions of the model to 
+complete the missing data.
+
+```{r}
+## We fit the regression model
+fit <- lm(recovtime ~ dose + bloodp, data = databp)
+
+```
+
+Again we have to check if the assumptions of the linear model are satisfied, so 
+we will check the residual plot and the qqplot respectively.
+
+```{r,out.width="70%",fig.align = 'center'}
+plot(fit$fitted.values, residuals(fit), xlab = "Fitted values",
+     ylab = "Residuals")
+
+```
+```{r,out.width="70%",fig.align = 'center'}
+qqnorm(rstandard(fit), xlim = c(-3, 3), ylim = c(-3, 3))
+qqline(rstandard(fit), col = 2)
+
+```
+There is some indication that the linear model might not be the optimal choice 
+here. We proceed with the imputation.
+
+
+```{r}
+predicted_ri <- predict(fit, newdata = databp)
+recovtime_ri <- ifelse(is.na(recovtime), predicted_ri, recovtime)
+
+```
+
+```{r}
+
+## Mean in complete analysis case 
+mccoverall_c <- mean(recovtime_ri, na.rm = TRUE)
+
+## Standard error in complete analysis case 
+seccoverall_c <- sd(recovtime_ri, na.rm = TRUE)/sqrt(length(recovtime_ri))
+
+```
+
+```{r}
+
+cat("The mean for the completed recovery time is", mccoverall_c,".")
+
+```
+
+
+```{r}
+cat("The standard error on the mean for the completed recovery time
+      is", seccoverall_c,".")
+
+```
+
+```{r}
+## Correlation between recovery time and the dose
+cor_recdos_c <- cor(recovtime_ri,dose)
+
+cat("The Pearson correlation between the completed recovery time and the dose
+      is", cor_recdos_c,".")
+```
+
+```{r}
+## Correlation between recovery time and the dose
+cor_recdbp_c <- cor(recovtime_ri,bloodp)
+
+cat("The Pearson correlation between the completed recovery time and the blood
+      pressure is", cor_recdbp_c,".")
+
+```
+
+(d) For this part, we just have to take the model we fitted in part (c) and we 
+add some noise before doing the imputation and then we replicate the 
+calculations of part (a).
+
+```{r}
+set.seed(1)
+
+predicted_sri <- predict(fit, newdata = databp) + rnorm(nrow(databp), 0, 
+                                                        sigma(fit))
+recovtime_sri <-  ifelse(is.na(recovtime), predicted_sri, recovtime)
+
+```
+
+
+```{r}
+
+## Mean in complete analysis case 
+mccoverall_d <- mean(recovtime_sri, na.rm = TRUE)
+
+## Standard error in complete analysis case 
+seccoverall_d <- sd(recovtime_sri, na.rm = TRUE)/sqrt(length(recovtime_sri))
+
+```
+
+```{r}
+
+cat("The mean for the completed recovery time is", mccoverall_d,".")
+
+```
+
+
+```{r}
+cat("The standard error on the mean for the completed recovery time
+      is", seccoverall_d,".")
+
+```
+
+```{r}
+## Correlation between recovery time and the dose
+cor_recdos_d <- cor(recovtime_sri,dose)
+
+cat("The Pearson correlation between the completed recovery time and the dose
+      is", cor_recdos_d,".")
+```
+
+```{r}
+## Correlation between recovery time and the dose
+cor_recdbp_d <- cor(recovtime_sri,bloodp)
+
+cat("The Pearson correlation between the completed recovery time and the blood
+      pressure is", cor_recdbp_d,".")
+
+```
+
+There are two important points to consider here. First of all, in our problem
+we don't want our imputation process to give negative values, since the data
+refer to recovery times. For the moment we don't face this problem, because
+our observed data are 'far away' from zero, so the completed data are also far 
+away from zero. If our data, were closer to zero it could be the case that SRI
+gave us negative values, one possible way to combat this is to do a 
+log-transformation. Secondly, as we already saw in the previous part, it is 
+imperative to check the assumptions of the linear model and in this specific 
+case we saw that it might not be the best option. To fix this we might try 
+fitting a higher order regression model or we might try a different method like
+predictive mean matching, which has a greater capacity for dealing with 
+heteroscedastic data.
+
+(e) In this part we shall apply predictive mean matching to perform the
+imputation. The idea is to use the simple linear regression model we have 
+fitted in part (c) to predict the variables with missing values from the other 
+(complete) variables and then for each subject with a missing value, the donor is 
+chosen to be the subject with a predicted value of her or his own that is closest 
+(to be measured by the squared difference) to the prediction for the subject
+with the missing value.
+
+```{r}
+
+fit <- lm(recovtime ~ dose + bloodp, data = databp)
+predicted_ri <- predict(fit, newdata = databp)
+
+pmm <- function(index, preds){
+  s_diff <- (preds - preds[index])^2
+  s_diff[which(is.na(recovtime))] <- NA
+  donor_index <- which.min(s_diff)
+  return(donor_index)
+}
+
+missing_indices <- which(is.na(recovtime))
+
+for(i in missing_indices){
+  
+  donor_index <- pmm(i,predicted_ri)
+  recovtime[i] <- recovtime[donor_index]
+  
+}
+
+
+
+```
+
+
+```{r}
+
+## Mean in complete analysis case 
+mccoverall_pmm <- mean(recovtime)
+
+## Standard error in complete analysis case 
+seccoverall_pmm <- sd(recovtime)/sqrt(length(recovtime))
+
+```
+
+```{r}
+
+cat("The mean recovery time for the predictive mean matching case is", 
+    mean(recovtime),".")
+
+```
+
+```{r}
+
+cat("The standard error on mean recovery time for the predictive mean matching 
+    case is", 
+    sd(recovtime)/sqrt(length(recovtime)),".")
+
+```
+
+```{r}
+## Correlation between recovery time and the dose
+cor_recdbp_e <- cor(recovtime,bloodp)
+
+cat("The Pearson correlation between the completed recovery time and the blood
+      pressure is", cor_recdbp_e,".")
+
+```
+
+
+```{r}
+## Correlation between recovery time and the dose
+cor_recdos_e <- cor(recovtime,dose)
+
+cat("The Pearson correlation between the completed recovery time and the dose
+      is", cor_recdos,".")
+```
+(f) A clear advantage of PMM over SRI is that the imputed data will always lie
+in the desired range, that is because the imputed values are real values that 
+are “borrowed” from individuals with real data. On the other hand, PMM may not 
+perform very well in areas where observed data are sparse, i.e. when we are 
+trying to impute extreme values.
+
+```{r}
+
+## The complete RMarkdown file can be found at my github page::
+## https://github.com/AntypasEvangelos/Incomplete-Data-Analysis
+## the repository will be made public after the submission
+
+```
